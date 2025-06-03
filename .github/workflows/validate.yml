@@ -1,0 +1,29 @@
+name: Validate
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: Run validation script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+      - name: Install .NET tools
+        run: |
+          dotnet new tool-manifest
+          dotnet tool install --local DotnetCtrfJsonReporter
+      - name: Run .NET unit tests
+        run: |
+          dotnet run validate.cs --results-directory "tst" --report-trx --report-trx-filename "results.trx"
+      - name: Generate CTRF test report
+        run: |
+          dotnet tool run DotnetCtrfJsonReporter --test-tool "mstest" --trx-path "tst/results.trx" --output-directory "ctrf" --output-filename "report.json"
+      - name: Publish CTRF test report
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: '**/ctrf/report*.json'
