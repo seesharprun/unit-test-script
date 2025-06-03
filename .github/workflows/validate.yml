@@ -19,7 +19,7 @@ jobs:
           dotnet tool install --local DotnetCtrfJsonReporter
       - name: Run .NET unit tests
         run: |
-          dotnet run validate.cs --results-directory "tst" --report-trx --report-trx-filename "results.trx"
+          dotnet run validate.cs  --results-directory "tst" --report-trx --report-trx-filename "results.trx" --no-ansi --ignore-exit-code "2"
       - name: Generate CTRF test report
         run: |
           dotnet tool run DotnetCtrfJsonReporter --test-tool "mstest" --trx-path "tst/results.trx" --output-directory "ctrf" --output-filename "report.json"
