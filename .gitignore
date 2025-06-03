@@ -9,6 +9,8 @@
 # Test output
 tst/
 **/*.trx
+ctrf/
+ctrf/**/*.json
 
 # dotenv files
 .env
