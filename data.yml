@@ -1,0 +1,12 @@
+- left: 1
+  right: 1
+  sum: 2
+- left: 2
+  right: 2
+  sum: 4
+- left: 3
+  right: 3
+  sum: 6
+- left: 0
+  right: 0
+  sum: 1 # This will fail as 0 + 0 != 1

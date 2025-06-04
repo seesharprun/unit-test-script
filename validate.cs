@@ -1,30 +1,24 @@
 ﻿#:package MSTest@3.*
+#:package YamlDotNet@16.*
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using System.Reflection;
+using System.Text;
+
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 [TestClass]
 public class CalculatorTests
 {
     [TestMethod]
-    public void TestAddSum()
-    {
-        // Arrange
-        int a = 5;
-        int b = 10;
-        int expected = 15;
-
-        // Act
-        int actual = Calculator.Add(a, b);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "The sum of {0} and {1} should be {2}.", a, b, expected);
-    }
-
-    [TestMethod]
-    [DataRow(1, 1, 2)]
-    [DataRow(2, 2, 4)]
-    [DataRow(3, 3, 6)]
-    [DataRow(0, 0, 1)]
+    [DynamicData(
+        dynamicDataSourceName: nameof(TestData.GetTestData),
+        dynamicDataDeclaringType: typeof(TestData),
+        dynamicDataSourceType: DynamicDataSourceType.Method,
+        DynamicDataDisplayName = nameof(TestData.GetTestDisplayName),
+        DynamicDataDisplayNameDeclaringType = typeof(TestData))]
     public void AddIntegers_FromDataRowTest(int x, int y, int z)
     {
         // Act
@@ -38,6 +32,37 @@ public class CalculatorTests
         // Assert
         Assert.AreEqual(expected, actual, "The sum of {0} and {1} should be {2}.", a, b, expected);
     }
+}
+
+record TestData
+{
+    public int? Left { get; set; }
+    public int? Right { get; set; }
+    public int? Sum { get; set; }
+
+    public (int, int, int) ToTuple()
+    {
+        return (Left ?? 0, Right ?? 0, Sum ?? 0);
+    }
+
+    public static IEnumerable<(int, int, int)> GetTestData()
+    {
+        using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+            Assembly.GetExecutingAssembly().GetManifestResourceNames().FirstOrDefault(
+                name => name.Contains("data.yml", StringComparison.OrdinalIgnoreCase)
+            )!
+        )!;
+        using StreamReader reader = new(stream);
+        using TextReader textReader = reader;
+        IEnumerable<TestData> data = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build()
+            .Deserialize<IEnumerable<TestData>>(textReader);
+        return data.Select(d => d.ToTuple());
+    }
+
+    public static string GetTestDisplayName(MethodInfo methodInfo, object[] data) =>
+        $"{methodInfo.Name.ToLowerInvariant()}-{data[0]}-{data[1]}-{data[2]}";
 }
 
 class Calculator
