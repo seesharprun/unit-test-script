@@ -62,7 +62,10 @@ record TestData
     }
 
     public static string GetTestDisplayName(MethodInfo methodInfo, object[] data) =>
-        $"{methodInfo.Name.ToLowerInvariant()}-{data[0]}-{data[1]}-{data[2]}";
+        BuildDisplayName(methodInfo.Name, (int)data[0], (int)data[1], (int)data[2]);
+
+    private static string BuildDisplayName(string methodName, int left, int right, int sum) =>
+        $"{methodName.ToLowerInvariant().Replace('_', '-')}-{left:00}-{right:00}-{sum:00}";
 }
 
 class Calculator
